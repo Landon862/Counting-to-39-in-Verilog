@@ -30,12 +30,15 @@ module test;
   // Wires for the pulses
   wire ones_pulse;
   wire tens_pulse; // Don't really need but its best practice to connect
-    
+ 
+  wire reset_2; //New code for counting to 54 rather than 39
+  assign reset_2 = (tens_count == 8'd5) && (ones_count == 8'd5); //New code for counting to 54 rather than 39
+  
   // The Ones Place Counter (Counts 0 to 9)
   state_cntr ones_place(
     .en(en),               // Driven by our main testbench enable switch
     .clk(clk), 
-    .reset(reset), 
+    .reset(reset | reset_2), 
     .term_cnt(8'd9),       // Tell it to stop at 9
     .cnt(ones_count),      // Send the current number to our ones_count wire
     .pulse(ones_pulse)     // Sends a high pulse when number hits 9
@@ -45,8 +48,8 @@ module test;
   state_cntr tens_place(
     .en(ones_pulse),       // Only enabled when the ones place hits 9
     .clk(clk), 
-    .reset(reset), 
-    .term_cnt(8'd3),       // Tell it to stop at 3
+    .reset(reset | reset_2), 
+    .term_cnt(8'd5),       // Tell it to stop at 3
     .cnt(tens_count),      // Send the current number to our tens_count wire
     .pulse(tens_pulse)
   );
@@ -64,9 +67,8 @@ module test;
     // Turn the main system on
     #6 en = 1; // Wait 6 nanoseconds
     
-    // We need 40 clock cycles to count from 00 to 39. 
-    // At 20ns per cycle, that's 800ns. 
-    #1000 // We will wait 1000ns just so we can watch it roll over from 39 back to 00!
+    // We need 40 clock cycles to count from 00 to 39.
+    #1500 // We will wait 1500ns just so we can watch it roll over from 54 back to 00
     
     $finish;
   end
